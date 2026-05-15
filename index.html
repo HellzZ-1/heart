@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol Heart</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #0d0d0d; color: #fff;
+            font-family: 'Courier New', monospace; display: flex;
+            justify-content: center; align-items: center; height: 100vh; overflow: hidden;
+        }
+        #ui-container { text-align: center; z-index: 10; }
+        .terminal-text { color: #888; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+        .password-input {
+            background-color: rgba(255, 42, 95, 0.05); border: 1px solid #555;
+            color: #fff; padding: 10px; font-size: 16px; font-family: inherit;
+            text-align: center; margin-bottom: 15px; outline: none; transition: 0.3s; width: 200px;
+        }
+        .password-input:focus { border-color: #ff2a5f; box-shadow: 0 0 10px rgba(255, 42, 95, 0.3); }
+        .error-msg { color: #ff2a5f; font-size: 12px; margin-bottom: 15px; min-height: 15px; }
+        .decrypt-btn {
+            background-color: transparent; border: 1px solid #ff2a5f; color: #ff2a5f;
+            padding: 12px 24px; font-size: 16px; font-family: inherit; cursor: pointer;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 2px;
+            border-radius: 4px; display: block; margin: 0 auto;
+        }
+        .decrypt-btn:hover { background-color: rgba(255, 42, 95, 0.1); box-shadow: 0 0 15px rgba(255, 42, 95, 0.5); }
+        canvas { position: absolute; top: 0; left: 0; display: none; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-container">
+        <div class="terminal-text">
+            [system] Initializing heart.PROTOCOL...<br>
+            [status] Awaiting authorization
+        </div>
+        <div>
+            <input type="password" id="passInput" class="password-input" placeholder="Enter password...">
+        </div>
+        <div id="errorText" class="error-msg"></div>
+        <button class="decrypt-btn" id="decryptBtn">DECRYPT MESSAGE</button>
+    </div>
+
+    <canvas id="heartCanvas"></canvas>
+
+    <script>
+        var btn = document.getElementById('decryptBtn');
+        var passInput = document.getElementById('passInput');
+        var errorText = document.getElementById('errorText');
+        var uiContainer = document.getElementById('ui-container');
+        var canvas = document.getElementById('heartCanvas');
+        var ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        var particles = [];
+        var text = "I love you";
+
+        function heartPosition(t) {
+            var x = 16 * Math.pow(Math.sin(t), 3);
+            var y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+            return { x: x, y: y };
+        }
+
+        class Particle {
+            constructor() {
+                this.t = Math.random() * Math.PI * 2; 
+                var scale = Math.random() * 12 + 5; 
+                var pos = heartPosition(this.t);
+                
+                this.targetX = canvas.width / 2 + pos.x * scale;
+                this.targetY = canvas.height / 2 - pos.y * scale;
+                this.x = canvas.width / 2 + (Math.random() - 0.5) * canvas.width;
+                this.y = canvas.height / 2 + (Math.random() - 0.5) * canvas.height;
+                this.speed = Math.random() * 0.04 + 0.01;
+                this.fontSize = Math.random() * 10 + 8;
+                
+                // Классическая склейка текста (никаких ошибок синтаксиса)
+                var r = 255;
+                var g = Math.random() * 100;
+                var b = Math.random() * 100 + 100;
+                var a = Math.random() * 0.8 + 0.2;
+                this.color = "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
+            }
+update() {
+                this.x += (this.targetX - this.x) * this.speed;
+                this.y += (this.targetY - this.y) * this.speed;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.font = this.fontSize + "px 'Courier New'";
+                ctx.fillText(text, this.x, this.y);
+            }
+        }
+
+        function initParticles() {
+            for (var i = 0; i < 600; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(13, 13, 13, 0.3)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (var i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        btn.addEventListener('click', function() {
+            if (passInput.value === "123") {
+                uiContainer.style.display = 'none';
+                canvas.style.display = 'block';
+                initParticles();
+                animate();
+            } else {
+                errorText.innerText = "[error] Access denied. Incorrect password.";
+                passInput.value = ""; 
+            }
+        });
+
+        passInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                btn.click();
+            }
+        });
+    </script>
+</body>
+</html>
